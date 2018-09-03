@@ -108,6 +108,9 @@ class BulletList extends Component {
 
 			let newList = this.state.list;
 			let res = li_id.split("_");	
+
+			res[res.length - 1] =  (res[res.length - 1] * 1) - (1 * 1) ;
+
 			let indexToUpdate = "";
 			_.map( res, (i,index) => {
 				if( index == 0 ){
@@ -116,6 +119,7 @@ class BulletList extends Component {
 					indexToUpdate += '.list.'+i;
 				}
 			})
+
 			// let currentItemIndex = res[res.length - 1];
 			// let newItemIndex = currentItemIndex + 1;
 			let temp_list = objectPath.get(newList,indexToUpdate)
@@ -126,8 +130,14 @@ class BulletList extends Component {
 
 			const newObj = immutable.set(newList,indexToUpdate, temp_list)
 
+			let item_selected_for_edit = res.join("_") +'_0';
+
 			this.setState({
 				list: newObj
+			},() => {
+				this.setState({
+					item_selected_for_edit: item_selected_for_edit
+				})
 			})
 
 
@@ -140,8 +150,15 @@ class BulletList extends Component {
 					text: li_value
 				}
 			]
+
+			let item_selected_for_edit = newItemIndex + '_0';
+
 			this.setState({
 				list: newList
+			},() => {
+				this.setState({
+					item_selected_for_edit: item_selected_for_edit
+				})
 			})
 		}
 	}
@@ -219,6 +236,7 @@ class BulletList extends Component {
 	}
 
   render() {
+  	console.log( this.state )
   	let {list} = this.state;
   	if( list.length == 0 ){
 			list.push({
