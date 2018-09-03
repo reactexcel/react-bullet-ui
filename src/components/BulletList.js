@@ -65,18 +65,20 @@ class BulletList extends Component {
 	}
 
 	_addEmptyNewListItem = ( currentId  ) => {
-
 		if( currentId.indexOf('_') != -1 ){ 
 			let newList = this.state.list;
 			let res = currentId.split("_");	
 			let indexToUpdate = "";
 			_.map( res, (i,index) => {
 				if( index < res.length - 1 ){
+					if( indexToUpdate != ""){
+						indexToUpdate += "."
+					}
 					indexToUpdate += i+'.list';
 				}
 			})
 			let currentItemIndex = res[res.length - 1];
-			let newItemIndex = currentItemIndex + 1;
+			let newItemIndex = (currentItemIndex * 1) + (1 * 1);
 			let temp_list = objectPath.get(newList,indexToUpdate)
 			temp_list.splice(newItemIndex, 0 , { text: '' });
 			const newObj = immutable.set(newList,indexToUpdate, temp_list)
@@ -102,17 +104,46 @@ class BulletList extends Component {
 
 
 	_addSubList = ( li_id, li_value ) => {
-		let newItemIndex = li_id - 1;
-		let {list} = this.state;
-		let newList = this.state.list;
-		newList[newItemIndex].list = [
-			{
-				text: li_value
-			}
-		]
-		this.setState({
-			list: newList
-		})
+		if( li_id.indexOf('_') != -1 ){
+
+			let newList = this.state.list;
+			let res = li_id.split("_");	
+			let indexToUpdate = "";
+			_.map( res, (i,index) => {
+				if( index == 0 ){
+					indexToUpdate += i;
+				} else {
+					indexToUpdate += '.list.'+i;
+				}
+			})
+			// let currentItemIndex = res[res.length - 1];
+			// let newItemIndex = currentItemIndex + 1;
+			let temp_list = objectPath.get(newList,indexToUpdate)
+
+			temp_list.list = [{
+				text: ''
+			}]
+
+			const newObj = immutable.set(newList,indexToUpdate, temp_list)
+
+			this.setState({
+				list: newObj
+			})
+
+
+		} else {
+			let newItemIndex = li_id - 1;
+			let {list} = this.state;
+			let newList = this.state.list;
+			newList[newItemIndex].list = [
+				{
+					text: li_value
+				}
+			]
+			this.setState({
+				list: newList
+			})
+		}
 	}
 
 	_onKeyPressItemText = (e) => {
