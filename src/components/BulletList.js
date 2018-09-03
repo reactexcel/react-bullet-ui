@@ -59,11 +59,10 @@ class BulletList extends Component {
 	}
 
 	_addEmptyNewListItem = ( parentUL_key ) => {
+		let newItemIndex = this.state.item_selected_for_edit + 1;
 		let newList = this.state.list;
-		newList.push({
-			text: ''
-		})
-		let toBeFocusLi = newList.length - 1;
+		newList.splice(newItemIndex, 0 , { text: '' })
+		let toBeFocusLi = newItemIndex;
 		this.setState({
 			list: newList
 		},() => {
