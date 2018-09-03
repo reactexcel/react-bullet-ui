@@ -40,22 +40,62 @@ class BulletList extends Component {
 	}
 
 	_deleteItem = ( itemid ) => {
-		let newList = this.state.list;
-		_.remove( newList, (item, id) => {
-			if( id == itemid ){
-				return true
+		if( itemid.indexOf('_') != -1 ){ 
+			let newList = this.state.list;
+			let res = itemid.split("_");	
+			let indexToUpdate = "";
+			_.map( res, (i,index) => {
+				
+				
+				if( index < res.length - 1 ){
+					if( indexToUpdate != ""){
+						indexToUpdate += "."
+					}
+					indexToUpdate += i+'.list';
+				} 
+				// else {
+				// 	indexToUpdate += '.'+i;
+				// }
+			})
+			let currentItemIndex = res[res.length - 1];
+			let itemIndexToRemove = (currentItemIndex * 1);
+			let temp_list = objectPath.get(newList,indexToUpdate)
+
+			_.remove( temp_list, (i, ind) => {
+				if( ind == itemIndexToRemove ){
+					return true;
+				}
+			})
+
+			// temp_list.splice(newItemIndex, 0 , { text: '' });
+			const newObj = immutable.set(newList,indexToUpdate, temp_list)
+			// res[res.length - 1] =  (res[res.length - 1] * 1) + (1 * 1) ;
+			// let toBeFocusLi = res.join("_");
+			this.setState({
+				list: newObj
+			})
+			// ,() => {
+			// 	this._selectItemForEdit( toBeFocusLi )
+			// })
+		} else {
+
+			let newList = this.state.list;
+			_.remove( newList, (item, id) => {
+				if( id == itemid ){
+					return true
+				}
+			})
+			let toBeFocusLi = itemid - 1;
+			if( toBeFocusLi < 0 ){
+				toBeFocusLi = 0;
 			}
-		})
-		let toBeFocusLi = itemid - 1;
-		if( toBeFocusLi < 0 ){
-			toBeFocusLi = 0;
+			this.setState({
+				list: newList,
+				timesBackspacePressed: 0 // reset
+			},() => {
+				this._selectItemForEdit( toBeFocusLi )
+			})
 		}
-		this.setState({
-			list: newList,
-			timesBackspacePressed: 0 // reset
-		},() => {
-			this._selectItemForEdit( toBeFocusLi )
-		})
 	}
 
 	_onChangeItemText = (e) => {
