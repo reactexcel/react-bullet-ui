@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import _ from 'lodash'
 import ReactDOM from 'react-dom';
+import immutable from 'object-path-immutable'
+
+import objectPath from "object-path";
 
 class BulletList extends Component {
 	constructor(props){
@@ -19,17 +22,20 @@ class BulletList extends Component {
 	}
 
 	_updateItem = ( itemid, value ) => {
-		let newList = _.map( this.state.list, (item, id) => {
-			if( id == itemid ){
-				return {
-					text: value
-				}
+		let newList = this.state.list;
+		let res = itemid.split("_");			
+		let indexToUpdate = "";
+		_.map( res, (i,index) => {
+			if( index == 0 ){
+				indexToUpdate += i;
 			} else {
-				return item
+				indexToUpdate += '.list.'+i;
 			}
 		})
+		indexToUpdate = indexToUpdate + '.text';
+		const newObj = immutable.set(newList,indexToUpdate, value)
 		this.setState({
-			list: newList
+			list: newObj
 		})
 	}
 
@@ -58,16 +64,86 @@ class BulletList extends Component {
 		this._updateItem( editedItemId, editedItemValue );		
 	}
 
-	_addEmptyNewListItem = ( parentUL_key ) => {
-		let newItemIndex = this.state.item_selected_for_edit + 1;
-		let newList = this.state.list;
-		newList.splice(newItemIndex, 0 , { text: '' })
-		let toBeFocusLi = newItemIndex;
-		this.setState({
-			list: newList
-		},() => {
-			this._selectItemForEdit( toBeFocusLi )
-		})
+	_addEmptyNewListItem = ( currentId  ) => {
+		if( currentId.indexOf('_') != -1 ){ 
+			let newList = this.state.list;
+			let res = currentId.split("_");	
+			let indexToUpdate = "";
+			_.map( res, (i,index) => {
+				if( index < res.length - 1 ){
+					if( indexToUpdate != ""){
+						indexToUpdate += "."
+					}
+					indexToUpdate += i+'.list';
+				}
+			})
+			let currentItemIndex = res[res.length - 1];
+			let newItemIndex = (currentItemIndex * 1) + (1 * 1);
+			let temp_list = objectPath.get(newList,indexToUpdate)
+			temp_list.splice(newItemIndex, 0 , { text: '' });
+			const newObj = immutable.set(newList,indexToUpdate, temp_list)
+			res[res.length - 1] =  (res[res.length - 1] * 1) + (1 * 1) ;
+			let toBeFocusLi = res.join("_");
+			this.setState({
+				list: newObj
+			},() => {
+				this._selectItemForEdit( toBeFocusLi )
+			})
+		} else {
+			let newItemIndex = this.state.item_selected_for_edit + 1;
+			let newList = this.state.list;
+			newList.splice(newItemIndex, 0 , { text: '' })
+			let toBeFocusLi = newItemIndex;
+			this.setState({
+				list: newList
+			},() => {
+				this._selectItemForEdit( toBeFocusLi )
+			})
+		}
+	}
+
+
+	_addSubList = ( li_id, li_value ) => {
+		if( li_id.indexOf('_') != -1 ){
+
+			let newList = this.state.list;
+			let res = li_id.split("_");	
+			let indexToUpdate = "";
+			_.map( res, (i,index) => {
+				if( index == 0 ){
+					indexToUpdate += i;
+				} else {
+					indexToUpdate += '.list.'+i;
+				}
+			})
+			// let currentItemIndex = res[res.length - 1];
+			// let newItemIndex = currentItemIndex + 1;
+			let temp_list = objectPath.get(newList,indexToUpdate)
+
+			temp_list.list = [{
+				text: ''
+			}]
+
+			const newObj = immutable.set(newList,indexToUpdate, temp_list)
+
+			this.setState({
+				list: newObj
+			})
+
+
+		} else {
+			let newItemIndex = li_id - 1;
+			let {list} = this.state;
+			let newList = this.state.list;
+			newList[newItemIndex].list = [
+				{
+					text: li_value
+				}
+			]
+			this.setState({
+				list: newList
+			})
+		}
 	}
 
 	_onKeyPressItemText = (e) => {
@@ -75,7 +151,7 @@ class BulletList extends Component {
 			let editedItemId = e.target.id
 			let parentULid = e.target.getAttribute('data-set-id');
 			let parentUL_key = parentULid.replace("UL", "").trim();
-			this._addEmptyNewListItem( parentUL_key );
+			this._addEmptyNewListItem( editedItemId );
 		} else if( e.key == 'Backspace' ){
 			let timesBackspacePressed = this.state.timesBackspacePressed;
 			if( e.target.value.length == 0 ) {
@@ -86,6 +162,9 @@ class BulletList extends Component {
 			} else {
 				this.setState({ timesBackspacePressed: timesBackspacePressed })
 			}
+		} else if( e.key == 'Tab' ){
+			e.preventDefault();
+			this._addSubList( e.target.id, e.target.value );
 		}
 	}
 
@@ -107,32 +186,46 @@ class BulletList extends Component {
 	_renderListItem = ( ULid, id, item ) => {
 		if( id === this.state.item_selected_for_edit ){
 			return this._renderSelectedItem( ULid, id, item )
-		} else {			
-			return <li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
-				{item.text}
-			</li>
+		} else {
+			let subList = null;
+			if( item.list && item.list.length > 0 ) {
+				subList = this._renderList( id,  item.list );
+			}
+			return <div>
+				<li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
+					{item.text}
+				</li>
+				{subList}
+			</div>
 		}
 	}
 
-	_renderList = () => {
-		const { list } = this.state;
+	_renderList = (key, list) => {
 		if( list.length == 0 ){
 			list.push({
 				text: ""
 			})
 		}
-		// console.log( list )
+
 		let ULid = "UL0";
 		return <ul id={ULid}>
 			{_.map(list, (item, id ) => {
+				if( key ){
+					id = key + '_' + id
+				}
 				return this._renderListItem(ULid, id, item)
 			})}
 		</ul>
 	}
 
   render() {
-  	// console.log( this.state )
-  	let listItems = this._renderList();
+  	let {list} = this.state;
+  	if( list.length == 0 ){
+			list.push({
+				text: ""
+			})
+		}
+  	let listItems = this._renderList( null, list);
     return (
     	<div id="bullets-list">
       	<h1>Bullet List</h1>
