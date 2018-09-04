@@ -142,6 +142,42 @@ class BulletList extends Component {
 		}
 	}
 
+	_moveItemToParentList = ( li_id, li_value ) => {
+		if( li_id.indexOf('_') != -1 ){
+			let newList = this.state.list;
+			let res = li_id.split("_");
+			let indexToUpdate = "";
+			_.map( res, (i,index) => {
+				if( index < res.length - 2 ){
+					if( indexToUpdate != ""){
+						indexToUpdate += "."
+					}
+					indexToUpdate += i+'.list';
+				}
+			})
+			let temp_list = objectPath.get(newList,indexToUpdate)
+			let newIndexToAddItem = (res[res.length - 2 ] * 1) + (1*1);
+			let id_to_focus = ""
+			_.map( res, (i,index) => {
+				if( index < res.length - 2 ){
+					id_to_focus += i+'_';
+				}
+			})
+			id_to_focus +=newIndexToAddItem;
+			temp_list.splice(newIndexToAddItem, 0 , { text: li_value });
+			const newObj = immutable.set(newList,indexToUpdate, temp_list)
+
+			this.setState({
+				list: newObj
+			}, () => {
+				this._deleteItem(li_id)
+				this.setState({
+					item_selected_for_edit: id_to_focus
+				})
+			})
+		}
+	}
+
 
 	_addSubList = ( li_id, li_value ) => {
 		if( li_id.indexOf('_') != -1 ){
@@ -222,8 +258,12 @@ class BulletList extends Component {
 			}
 		} else if( e.key == 'Tab' ){
 			e.preventDefault();
-			this._addSubList( e.target.id, e.target.value );
-		}
+			if( e.shiftKey ){
+				this._moveItemToParentList( e.target.id, e.target.value );
+			} else {
+				this._addSubList( e.target.id, e.target.value );
+			}
+		} 
 	}
 
 	_renderSelectedItem = ( ULid, id, item ) => {
