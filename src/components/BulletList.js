@@ -370,7 +370,7 @@ class BulletList extends Component {
 					<div className="sub-list">
 						<div className="li-box">
 							<div className="box-left">
-								<span className="dot"></span>
+								
 							</div>
 							<div className="box-right">
 								{subList}
