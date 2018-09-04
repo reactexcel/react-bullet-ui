@@ -49,15 +49,12 @@ class BulletList extends Component {
 	}
 
 	_onBulletClick = (e) => {
-		// console.log(e.target.id)
 		let {list} = this.state;
-		// console.log( list )
 		
 	}
 
 	_onBulletHover = (e) => {
 		let {list} = this.state;
-		// console.log( list )
 		// this._toggleSublistView( e.target.id );
 	}
 
@@ -109,10 +106,19 @@ class BulletList extends Component {
 
 			// temp_list.splice(newItemIndex, 0 , { text: '' });
 			const newObj = immutable.set(newList,indexToUpdate, temp_list)
-			// res[res.length - 1] =  (res[res.length - 1] * 1) + (1 * 1) ;
-			// let toBeFocusLi = res.join("_");
+			let lastIndexVal = (res[res.length - 1] * 1) - (1 * 1) ;
+			if( lastIndexVal < 0 ){
+				res = res.slice(0, -1);
+			} else {
+				res[res.length - 1] =  lastIndexVal;	
+			}
+			
+			let toBeFocusLi = res.join("_");
+
 			this.setState({
 				list: newObj
+			},() => {
+				this._selectItemForEdit( toBeFocusLi )
 			})
 			// ,() => {
 			// 	this._selectItemForEdit( toBeFocusLi )
