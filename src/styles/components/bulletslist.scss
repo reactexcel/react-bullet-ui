@@ -1,11 +1,11 @@
 #bullets-list{
 	margin: 0 auto;
-	width: 70%;
+	width: 100%;
 	margin-top:20px;
 	font-size:16x;
 
 	.list-start {
-		padding: 5px;
+		
 	}
 
 	.clear-float {
@@ -16,20 +16,31 @@
 		font-size:16px !important;
 	}
 
+	.non-edit-mode-div {
+		height: 20px;
+	}
+
 	.dot {
     height: 10px;
     width: 10px;
     background-color: black;
     border-radius: 50%;
     display: inline-block;
+    
+	}
+
+	.span-collapse-expand{
+		font-weight: bold;
 	}
 
 	.li-box {
-		margin-top: 10px;
 
 		.box-left {
 			float: left;
 			padding: 5px;
+			cursor: pointer;
+			width: 10%;
+			text-align: right;
 		}
 		.box-right {
 			padding: 5px;

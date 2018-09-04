@@ -11,7 +11,8 @@ class BulletList extends Component {
 		this.state = {
 			timesBackspacePressed: 0,
 			item_selected_for_edit: 0,
-			list: []
+			list: [],
+			hoverItemSelected:null
 		}
 	}
 
@@ -19,6 +20,45 @@ class BulletList extends Component {
 		this.setState({
 			item_selected_for_edit: id 
 		})
+	}
+
+	_toggleSublistView = (e) => {
+		let id = e.target.id
+		let {list} = this.state;
+		let pathArray = id.split('_');
+		let pathToGet = "";
+		_.map( pathArray, (i,index) => {
+			if( index == 0 ){
+				pathToGet += i;
+			} else {
+				pathToGet += '.list.'+i;
+			}
+		})
+		let temp_list = objectPath.get(list,pathToGet)
+		if( temp_list && temp_list.list && temp_list.list.length > 0 ){
+			let isCollapsed = true;
+			if( temp_list.collapsed ){
+				isCollapsed = false;
+			}
+			temp_list.collapsed = isCollapsed;			
+		}
+		const newObj = immutable.set(list,pathToGet, temp_list)
+		this.setState({
+			list: newObj
+		})
+	}
+
+	_onBulletClick = (e) => {
+		// console.log(e.target.id)
+		let {list} = this.state;
+		// console.log( list )
+		
+	}
+
+	_onBulletHover = (e) => {
+		let {list} = this.state;
+		// console.log( list )
+		// this._toggleSublistView( e.target.id );
 	}
 
 	_updateItem = ( itemid, value ) => {
@@ -271,85 +311,86 @@ class BulletList extends Component {
 		} 
 	}
 
-	_renderSelectedItem = ( ULid, id, item ) => {
+	_renderItem = ( editMode, ULid, id, item ) => {
+
+		let collapseExpandDiv = null;
+		if( item.list && item.list.length > 0 ) {
+			if( item.collapsed ){
+				collapseExpandDiv = <span className="span-collapse-expand" id={id} onClick={this._toggleSublistView }> + </span>
+			} else {
+				collapseExpandDiv = <span className="span-collapse-expand" id={id} onClick={this._toggleSublistView}> - </span>	
+			}
+		}
+
+		if( this.state.hoverItemSelected != id ){
+			collapseExpandDiv = null
+		}
+
+
 		return <div className="li-box">
-			<div className="box-left">
-				<span className="dot"></span>
+			<div 
+				className="box-left"
+				onMouseEnter={() => {
+					this.setState({
+						hoverItemSelected: id
+					})
+				}}
+				onMouseLeave={() => {
+					this.setState({
+						hoverItemSelected: null
+					})
+				}}
+			>
+				{collapseExpandDiv}
+				<span 
+					className="dot" 
+					id={id} 
+					key={id} 
+					// onClick={this._onBulletClick}
+					// onMouseOver={this._onBulletHover}
+				></span>
 			</div>
 			<div className="box-right">
-				<div id={id} key={id}>
-					<input
-						autoFocus
-						id={id}
-						className="current-edit-item" 
-						data-set-id={ULid}
-						type="text" 
-						value={item.text}
-						onChange={this._onChangeItemText}
-						onKeyDown={this._onKeyPressItemText}
-					/>
-				</div>
+				{ 
+					editMode ?
+				
+						<div id={id} key={id}>
+							<input
+								autoFocus
+								id={id}
+								className="current-edit-item" 
+								data-set-id={ULid}
+								type="text" 
+								value={item.text}
+								onChange={this._onChangeItemText}
+								onKeyDown={this._onKeyPressItemText}
+							/>
+						</div>
+					:
+
+						<div id={id} key={id} data-set-id={ULid} className="non-edit-mode-div" onClick={() => this._selectItemForEdit(id)}>
+							{item.text}
+						</div>
+					}
 			</div>
 			<div className="clear-float"/>
 		</div>
-
-		// return <li id={id} key={id}>
-		// 	<input
-		// 		autoFocus
-		// 		id={id}
-		// 		className="current-edit-item" 
-		// 		data-set-id={ULid}
-		// 		type="text" 
-		// 		value={item.text}
-		// 		onChange={this._onChangeItemText}
-		// 		onKeyDown={this._onKeyPressItemText}
-		// 	/>
-		// </li>
-	}
-
-	_renderUnSelectedItem = ( ULid, id, item ) => {
-		return <div className="li-box">
-			<div className="box-left">
-				<span className="dot"></span>
-			</div>
-			<div className="box-right">
-				<div id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
-				{item.text}
-				</div>
-			</div>
-			<div className="clear-float"/>
-		</div>
-		// return <li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
-		// 			{item.text}
-		// 		</li>
 	}
 
 	_renderListItem = ( ULid, id, item ) => {
-		// if( id === this.state.item_selected_for_edit ){
-		// 	return this._renderSelectedItem( ULid, id, item )
-		// } else {
-		// 	let subList = null;
-		// 	if( item.list && item.list.length > 0 ) {
-		// 		subList = this._renderList( id,  item.list );
-		// 	}
-		// 	return <div>
-		// 		<li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
-		// 			{item.text}
-		// 		</li>
-		// 		{subList}
-		// 	</div>
-		// }
-
 		let itt = null
-		if( id === this.state.item_selected_for_edit ){
-			itt = this._renderSelectedItem( ULid, id, item )
+		if( id == this.state.item_selected_for_edit ){
+			itt = this._renderItem( true, ULid, id, item )
 		} else {
-			itt = this._renderUnSelectedItem( ULid, id, item )
+			itt = this._renderItem( false, ULid, id, item )
 		}
-
 		let subList = null;
 		if( item.list && item.list.length > 0 ) {
-			subList = this._renderList( id,  item.list );
+			if( item.collapsed ){
+				
+			} else {
+				subList = this._renderList( id,  item.list );	
+			}
 		}
 
 		// calculate padding left
@@ -381,13 +422,6 @@ class BulletList extends Component {
 				:
 				null
 			}
-
-
-
-			
-
-
-
 		</div>)
 	}
 
@@ -410,7 +444,6 @@ class BulletList extends Component {
 	}
 
   render() {
-  	console.log( this.state )
   	let {list} = this.state;
   	if( list.length == 0 ){
 			list.push({
