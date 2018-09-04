@@ -180,7 +180,9 @@ class BulletList extends Component {
 
 
 	_addSubList = ( li_id, li_value ) => {
-		if( li_id.indexOf('_') != -1 ){
+
+
+		// if( li_id.indexOf('_') != -1 ){
 
 			let newList = this.state.list;
 			let res = li_id.split("_");	
@@ -196,47 +198,52 @@ class BulletList extends Component {
 				}
 			})
 
-			// let currentItemIndex = res[res.length - 1];
-			// let newItemIndex = currentItemIndex + 1;
-			let temp_list = objectPath.get(newList,indexToUpdate)
-
-			temp_list.list = [{
-				text: ''
-			}]
-
-			const newObj = immutable.set(newList,indexToUpdate, temp_list)
-
-			let item_selected_for_edit = res.join("_") +'_0';
-
-			this.setState({
-				list: newObj
-			},() => {
+			if( indexToUpdate != -1 ){
+				let temp_list = objectPath.get(newList,indexToUpdate)
+				temp_list.list = [{
+					text: ''
+				}]
+				const newObj = immutable.set(newList,indexToUpdate, temp_list)
+				let item_selected_for_edit = res.join("_") +'_0';
 				this.setState({
-					item_selected_for_edit: item_selected_for_edit
+					list: newObj
+				},() => {
+					this.setState({
+						item_selected_for_edit: item_selected_for_edit
+					})
 				})
-			})
+			}
 
 
-		} else {
-			let newItemIndex = li_id - 1;
-			let {list} = this.state;
-			let newList = this.state.list;
-			newList[newItemIndex].list = [
-				{
-					text: li_value
-				}
-			]
+		// } 
+		// else {
 
-			let item_selected_for_edit = newItemIndex + '_0';
+		// 	console.log(li_id)
 
-			this.setState({
-				list: newList
-			},() => {
-				this.setState({
-					item_selected_for_edit: item_selected_for_edit
-				})
-			})
-		}
+		// 	let newItemIndex = li_id - 1;
+		// 	if( newItemIndex >= 0 ){
+
+		// 		console.log( newItemIndex )
+
+		// 		let {list} = this.state;
+		// 		let newList = this.state.list;
+		// 		newList[newItemIndex].list = [
+		// 			{
+		// 				text: li_value
+		// 			}
+		// 		]
+
+		// 		let item_selected_for_edit = newItemIndex + '_0';
+
+		// 		this.setState({
+		// 			list: newList
+		// 		},() => {
+		// 			this.setState({
+		// 				item_selected_for_edit: item_selected_for_edit
+		// 			})
+		// 		})
+		// 	}
+		// }
 	}
 
 	_onKeyPressItemText = (e) => {
@@ -282,20 +289,42 @@ class BulletList extends Component {
 	}
 
 	_renderListItem = ( ULid, id, item ) => {
+		// if( id === this.state.item_selected_for_edit ){
+		// 	return this._renderSelectedItem( ULid, id, item )
+		// } else {
+		// 	let subList = null;
+		// 	if( item.list && item.list.length > 0 ) {
+		// 		subList = this._renderList( id,  item.list );
+		// 	}
+		// 	return <div>
+		// 		<li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
+		// 			{item.text}
+		// 		</li>
+		// 		{subList}
+		// 	</div>
+		// }
+
+		let itt = null
 		if( id === this.state.item_selected_for_edit ){
-			return this._renderSelectedItem( ULid, id, item )
+			itt = this._renderSelectedItem( ULid, id, item )
 		} else {
-			let subList = null;
+			itt = 	<li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
+					{item.text}
+				</li>
+		}
+
+		let subList = null;
 			if( item.list && item.list.length > 0 ) {
 				subList = this._renderList( id,  item.list );
 			}
 			return <div>
-				<li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
-					{item.text}
-				</li>
+				{itt}
 				{subList}
 			</div>
-		}
+
+
+
+
 	}
 
 	_renderList = (key, list) => {
