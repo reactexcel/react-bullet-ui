@@ -216,6 +216,7 @@ class BulletList extends Component {
 			}
 			if( timesBackspacePressed == 1 ){
 				this._deleteItem( e.target.id )
+				e.preventDefault();
 			} else {
 				this.setState({ timesBackspacePressed: timesBackspacePressed })
 			}
