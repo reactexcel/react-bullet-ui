@@ -218,12 +218,10 @@ class BulletList extends Component {
 		// } 
 		// else {
 
-		// 	console.log(li_id)
-
 		// 	let newItemIndex = li_id - 1;
 		// 	if( newItemIndex >= 0 ){
 
-		// 		console.log( newItemIndex )
+
 
 		// 		let {list} = this.state;
 		// 		let newList = this.state.list;
@@ -274,18 +272,56 @@ class BulletList extends Component {
 	}
 
 	_renderSelectedItem = ( ULid, id, item ) => {
-		return <li id={id} key={id}>
-			<input
-				autoFocus
-				id={id}
-				className="current-edit-item" 
-				data-set-id={ULid}
-				type="text" 
-				value={item.text}
-				onChange={this._onChangeItemText}
-				onKeyDown={this._onKeyPressItemText}
-			/>
-		</li>
+		return <div className="li-box">
+			<div className="box-left">
+				<span className="dot"></span>
+			</div>
+			<div className="box-right">
+				<div id={id} key={id}>
+					<input
+						autoFocus
+						id={id}
+						className="current-edit-item" 
+						data-set-id={ULid}
+						type="text" 
+						value={item.text}
+						onChange={this._onChangeItemText}
+						onKeyDown={this._onKeyPressItemText}
+					/>
+				</div>
+			</div>
+			<div className="clear-float"/>
+		</div>
+
+		// return <li id={id} key={id}>
+		// 	<input
+		// 		autoFocus
+		// 		id={id}
+		// 		className="current-edit-item" 
+		// 		data-set-id={ULid}
+		// 		type="text" 
+		// 		value={item.text}
+		// 		onChange={this._onChangeItemText}
+		// 		onKeyDown={this._onKeyPressItemText}
+		// 	/>
+		// </li>
+	}
+
+	_renderUnSelectedItem = ( ULid, id, item ) => {
+		return <div className="li-box">
+			<div className="box-left">
+				<span className="dot"></span>
+			</div>
+			<div className="box-right">
+				<div id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
+				{item.text}
+				</div>
+			</div>
+			<div className="clear-float"/>
+		</div>
+		// return <li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
+		// 			{item.text}
+		// 		</li>
 	}
 
 	_renderListItem = ( ULid, id, item ) => {
@@ -308,23 +344,51 @@ class BulletList extends Component {
 		if( id === this.state.item_selected_for_edit ){
 			itt = this._renderSelectedItem( ULid, id, item )
 		} else {
-			itt = 	<li id={id} key={id} data-set-id={ULid} onClick={() => this._selectItemForEdit(id)}>
-					{item.text}
-				</li>
+			itt = this._renderUnSelectedItem( ULid, id, item )
 		}
 
 		let subList = null;
-			if( item.list && item.list.length > 0 ) {
-				subList = this._renderList( id,  item.list );
+		if( item.list && item.list.length > 0 ) {
+			subList = this._renderList( id,  item.list );
+		}
+
+		// calculate padding left
+		let paddingValue = 20;
+		if( id.toString().indexOf('_') != -1 ){
+			let explodeID = id.split("_");
+			
+			if( explodeID.length > 0 ){
+				paddingValue = paddingValue * explodeID.length;
 			}
-			return <div>
-				{itt}
-				{subList}
-			</div>
+		}
+
+		return (<div>
+			{itt}
+
+			{
+				subList ?
+					<div className="sub-list">
+						<div className="li-box">
+							<div className="box-left">
+								<span className="dot"></span>
+							</div>
+							<div className="box-right">
+								{subList}
+							</div>
+							<div className="clear-float"/>
+						</div>				
+					</div>
+				:
+				null
+			}
 
 
 
+			
 
+
+
+		</div>)
 	}
 
 	_renderList = (key, list) => {
@@ -335,14 +399,14 @@ class BulletList extends Component {
 		}
 
 		let ULid = "UL0";
-		return <ul id={ULid}>
+		return <div id={ULid} className="list-start">
 			{_.map(list, (item, id ) => {
 				if( key ){
 					id = key + '_' + id
 				}
 				return this._renderListItem(ULid, id, item)
 			})}
-		</ul>
+		</div>
 	}
 
   render() {
@@ -356,7 +420,6 @@ class BulletList extends Component {
   	let listItems = this._renderList( null, list);
     return (
     	<div id="bullets-list">
-      	<h1>Bullet List</h1>
       	{listItems}
       </div>
     );
